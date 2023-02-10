@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public class User {
 
     private Integer id;
-    
+
     @Size(min=2)
     private String name;
 
