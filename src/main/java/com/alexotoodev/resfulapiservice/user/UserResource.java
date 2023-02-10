@@ -1,8 +1,12 @@
 package com.alexotoodev.resfulapiservice.user;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,45 +26,47 @@ public class UserResource {
         this.service = service;
     }
 
-
-    //Get /users
+    // Get /users
     @GetMapping("/users")
-    public List<User> geAlltUsers() {  return  service.findAll(); }   
+    public List<User> getAllUsers() {
+        return service.findAll();
+    }
 
-    //Get /users
+    // Get /users
     @GetMapping("/users/{id}")
-    public User getUserByID(@PathVariable int id) {
-         User user = service.findOne(id);
+    public EntityModel<User> getUserByID(@PathVariable int id) {
+        User user = service.findOne(id);
 
-         if(user == null){
-            throw new UserNotFoundException("id:"+id);
-         }
-         return user;
-        }
+        if (user == null)
+            throw new UserNotFoundException("id:" + id);
 
+        EntityModel<User> entityModel = EntityModel.of(user);
 
-    //Delete /user
+        WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).getAllUsers());
+        entityModel.add(link.withRel("all-isers"));
+
+        return entityModel;
+    }
+
+    // Delete /user
     @DeleteMapping("/users/{id}")
     public void deleteUserByID(@PathVariable int id) {
-      service.deleteById(id);
-        }
+        service.deleteById(id);
+    }
 
-    
-
-    //Post /users
+    // Post /users
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user){
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         User savedUser = service.save(user);
-       
-        //returns the location of the created user.
+
+        // returns the location of the created user.
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/{id}")
-        .buildAndExpand(savedUser
-        .getId()).toUri();
+                .path("/{id}")
+                .buildAndExpand(savedUser
+                        .getId())
+                .toUri();
 
         return ResponseEntity.created(location).build();
-
-
 
     }
 
