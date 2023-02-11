@@ -58,13 +58,13 @@ public class UserJpaResource {
     // Delete /user
     @DeleteMapping("/jpa/users/{id}")
     public void deleteUserByID(@PathVariable int id) {
-        service.deleteById(id);
+        repository.deleteById(id);
     }
 
     // Post /users
     @PostMapping("/jpa/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User savedUser = service.save(user);
+        User savedUser = repository.save(user);
 
         // returns the location of the created user.
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
