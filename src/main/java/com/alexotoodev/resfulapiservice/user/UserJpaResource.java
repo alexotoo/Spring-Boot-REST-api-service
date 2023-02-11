@@ -18,19 +18,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.alexotoodev.resfulapiservice.jpa.PostRepository;
 import com.alexotoodev.resfulapiservice.jpa.UserRepository;
 
 import jakarta.validation.Valid;
 
 @RestController
 public class UserJpaResource {
-    private UserDaoService service;
 
     private UserRepository repository;
+    private PostRepository postRepository;
 
-    public UserJpaResource(UserDaoService service, UserRepository repository) {
-        this.service = service;
+    public UserJpaResource(UserRepository repository, PostRepository postRepository) {
+
         this.repository = repository;
+        this.postRepository = postRepository;
     }
 
     // Get /users
@@ -73,7 +75,7 @@ public class UserJpaResource {
 
     }
 
-    // /users
+    // /users --create user--
     @PostMapping("/jpa/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         User savedUser = repository.save(user);
@@ -82,6 +84,29 @@ public class UserJpaResource {
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(savedUser
+                        .getId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
+
+    }
+
+    // get /post create a new post
+    @PostMapping("/jpa/users/{id}/posts")
+    public ResponseEntity<Object> createPostForUser(@PathVariable int id, @Valid @RequestBody Post post) {
+        Optional<User> user = repository.findById(id);
+
+        if (user.isEmpty())
+            throw new UserNotFoundException("id:" + id);
+
+        post.setUser(user.get());
+
+        Post savedPost = postRepository.save(post);
+
+        // returns the location of the created user.
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedPost
                         .getId())
                 .toUri();
 
